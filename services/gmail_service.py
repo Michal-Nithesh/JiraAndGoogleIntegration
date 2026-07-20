@@ -61,14 +61,42 @@ Subject: {subject}
 
 def get_latest_email(access_token):
 
-    response = requests.get(
-        "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=1",
-        headers={
-            "Authorization": f"Bearer {access_token}"
-        }
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    list_response = requests.get(
+        "https://gmail.googleapis.com/gmail/v1/users/me/messages",
+        headers=headers,
+        params={"maxResults": 1}
     )
 
-    return response.json()
+    list_data = list_response.json()
+    messages = list_data.get("messages", [])
+
+    if not messages:
+        return {"message": None}
+
+    message_id = messages[0]["id"]
+
+    detail_response = requests.get(
+        f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}",
+        headers=headers,
+        params={"format": "metadata", "metadataHeaders": ["Subject", "From"]}
+    )
+
+    detail = detail_response.json()
+    header_map = {
+        h["name"]: h["value"]
+        for h in detail.get("payload", {}).get("headers", [])
+    }
+
+    return {
+        "message": {
+            "id": message_id,
+            "subject": header_map.get("Subject", "(no subject)"),
+            "from": header_map.get("From", "Unknown sender"),
+            "snippet": detail.get("snippet", "")
+        }
+    }
 
 
 def get_unread_count(access_token):

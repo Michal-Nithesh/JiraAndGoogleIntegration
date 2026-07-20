@@ -1,5 +1,22 @@
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+def list_upcoming_events(access_token, max_results=5):
+
+    response = requests.get(
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+        headers={
+            "Authorization": f"Bearer {access_token}"
+        },
+        params={
+            "maxResults": max_results,
+            "orderBy": "startTime",
+            "singleEvents": "true",
+            "timeMin": datetime.now(timezone.utc).isoformat()
+        }
+    )
+
+    return response.json()
 
 def create_calendar_event(
     title,

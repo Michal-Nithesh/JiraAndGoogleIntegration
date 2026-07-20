@@ -20,7 +20,7 @@ from services.jira_service import (
     get_board_view,
     search_issues
 )
-from services.calendar_service import create_calendar_event
+from services.calendar_service import create_calendar_event, list_upcoming_events
 from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import requests
@@ -592,6 +592,12 @@ Adminii
             "success": False,
             "error": str(e)
         }), 500
+@app.route("/calendar/events")
+def calendar_events():
+
+    result = list_upcoming_events(GOOGLE_ACCESS_TOKEN)
+
+    return jsonify(result)
 @app.route("/test-meet")
 def test_meet():
     result = create_calendar_event(
@@ -642,6 +648,12 @@ def gmail_unread():
     )
 
     return jsonify(result)
+@app.route("/gmail/latest")
+def gmail_latest():
+
+    result = get_latest_email(GOOGLE_ACCESS_TOKEN)
+
+    return jsonify(result)
 
 
 @app.route("/drive/create-folder", methods=["POST"])
@@ -655,6 +667,12 @@ def create_folder_route():
         folder_name,
         GOOGLE_ACCESS_TOKEN
     )
+
+    return jsonify(result)
+@app.route("/drive/files")
+def drive_files():
+
+    result = list_files(GOOGLE_ACCESS_TOKEN)
 
     return jsonify(result)
 @app.route("/docs/create", methods=["POST"])
